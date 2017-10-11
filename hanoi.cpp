@@ -15,10 +15,11 @@ private:
   std::unordered_map <int, int> moves; // maps disks to their last position before current one
   int lrud; // least recently used disk
 
-  unsigned int moveCounter;
+  unsigned int moveCounter; // tracks the number of moves
 
   void rHanoi(); // main / recursive function. Called by play
-  std::stack<int> & getFrom();
+  std::stack<int> & getFrom(); // rHanoi helper
+  std::stack<int> & getTo(std::stack<int> &); //rHanoi helper
   void move(std::stack<int> &, std::stack<int> &); // called by rHanoi
   void printStacks(); // called by move to output process
 };
@@ -44,54 +45,71 @@ Hanoi::Hanoi(const unsigned int & n):
     }
 
   for(int i = n - 1; i >= 0; i--) // the disks are zero-based
-    stacks[0].push(i); // all discs start on the left stack (stacks[0])
+    {
+      stacks[0].push(i); // all discs start on the left stack (stacks[0])
+      moves[i] = -1;
+    }
+  std::cout << "constructor finished\n";
 }
 
 std::stack<int> & Hanoi::getFrom()
 {
-
-  /*
-  for(auto & stack : stacks)
-    {
-      if(!stack.empty() && // not empty
-	 stack.top() != lrud && // top is not recently used
-	 stack.top() <= stacks[0].top() && // top is less than others
-	 stack.top() <= stacks[1].top() &&
-	 stack.top() <= stacks[2].top())
-	return stack;
-    }
-  */
-
-  for(int i = 0; i < 2; ++ i)
-    {
-      for(int j = 0; j < 2; ++j)
-	{
-	  if(i != j && // do not compare with itself
-	     !stacks[i].empty() && // and not empty
-	     stacks[i].top() != lrud && // and not recently used
-	     stacks[i].top() < stacks[j].top()) // and there is space to move it
-	    return stacks[i];
-	}
-    }
+  
+  //std::cout << "getFrom()\n";
+  
+  for(int i = 0; i < 3; ++ i)
+    for(int j = 0; j < 3; ++j)
+      if(i != j && // do not compare with itself
+	 !stacks[i].empty() && // and not empty
+	 stacks[i].top() != lrud && // and not recently used
+	 (stacks[j].empty() ||       // there is an empty stack or
+	  (stacks[i].top() < stacks[j].top())
+	  )) // 
+	return stacks[i];
+  
+  //return stacks[0];
+  // control never should get to this point
   std::cerr << "something went wrong in getFrom()\n";
   exit(EXIT_FAILURE);
 }
 
+std::stack<int> & Hanoi::getTo(std::stack<int> & sFrom)
+{
+  // getFrom guarantees there is a viable space to move
+  std::cout << "about to move: " << sFrom.top() << '\n';
+  for(int i = 0; i < 3; ++i)
+    if(sFrom != stacks[i] && // not move to the same place and
+       i != moves[sFrom.top()]&& // not move to the last position and
+       (stacks[i].empty() || (sFrom.top() < stacks[i].top()))) // move to a valid or empty stack
+      return stacks[i];
+
+  // control never should get to this point
+  std::cerr << "something went wrong in getTo()\n";
+  exit(EXIT_FAILURE);
+  
+}
+
 void Hanoi::rHanoi()
 {
+  //std::cout << "rHanoi\n";
   if(stacks[0].empty() && // left stack empty and
      (stacks[1].empty() || // middle or
       stacks[2].empty())) // right
     return; // base case
 
-  std::stack<int> * sFrom, * sTo;
+  //std::cout << "about to initialize pointers\n";
 
-  * sFrom = getFrom();
+
+  std::stack<int> & sFrom = getFrom();
+  std::stack<int> & sTo = getTo(sFrom);
+  move(sFrom, sTo);
+  return rHanoi();
 }
 
 void Hanoi::play()
 {
   printStacks();
+  move(stacks[0], stacks[2]); // first move
   rHanoi();
 }
 
@@ -101,16 +119,16 @@ void Hanoi::printStacks()
   int i = 0;
   for(const auto & stack : stacks)
     {
-      std::cout << "stack "  << i++ << " : ";
+      std::cout << "stack "  << i++ << " : | ";
       for(auto dump = stack; !dump.empty(); dump.pop())
-	std::cout << dump.top() << " - ";
+	std::cout << dump.top() << " | ";
       std::cout << '\n';
     }
   std::cout << '\n';
 }
 
 void Hanoi::move(std::stack<int> & from, std::stack<int> & to)
-{
+{ 
   int fromPosition;
   for(int i = 0; i < 3; i++)
     if (stacks[i] == from)
