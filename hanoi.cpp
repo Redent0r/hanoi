@@ -2,7 +2,8 @@
 #include <vector>
 #include <stack>
 #include <unordered_map>
-#include <cstdlib> /* exit, EXIT_FAILURE */
+#include <cstdlib> // exit, EXIT_FAILURE
+#include <algorithm> // max
 
 class Hanoi
 {
@@ -49,7 +50,7 @@ Hanoi::Hanoi(const unsigned int & n):
       stacks[0].push(i); // all discs start on the left stack (stacks[0])
       moves[i] = -1;
     }
-  std::cout << "constructor finished\n";
+  //std::cout << "constructor finished\n";
 }
 
 std::stack<int> & Hanoi::getFrom()
@@ -76,7 +77,7 @@ std::stack<int> & Hanoi::getFrom()
 std::stack<int> & Hanoi::getTo(std::stack<int> & sFrom)
 {
   // getFrom guarantees there is a viable space to move
-  std::cout << "about to move: " << sFrom.top() << '\n';
+  //std::cout << "about to move: " << sFrom.top() << '\n';
   for(int i = 0; i < 3; ++i)
     if(sFrom != stacks[i] && // not move to the same place and
        i != moves[sFrom.top()]&& // not move to the last position and
@@ -116,6 +117,7 @@ void Hanoi::play()
 void Hanoi::printStacks()
 {
   std::cout << "move counter: " << moveCounter++ << '\n';
+  /*
   int i = 0;
   for(const auto & stack : stacks)
     {
@@ -125,6 +127,52 @@ void Hanoi::printStacks()
       std::cout << '\n';
     }
   std::cout << '\n';
+  */
+  
+  std::stack<int> s0 (stacks[0]);
+  std::stack<int> s1 (stacks[1]);
+  std::stack<int> s2 (stacks[2]);
+
+  int s0Size = s0.size();
+  int s1Size = s1.size();
+  int s2Size = s2.size();
+  
+  int largest = s0Size;
+  largest = std::max(largest, s1Size);
+  largest = std::max(largest, s2Size);
+
+  //std::cout << largest << '\n';
+
+  for(int i = largest; i != 0; --i)
+    {
+      if(((s0Size - i) >= 0) &&  !s0.empty())
+	{
+	  std::cout << "| " << s0.top() << " |";\
+	  s0.pop();
+	}
+      else
+	{
+	  std::cout << "     ";
+	}
+      if(((s1Size - i) >= 0) && !s1.empty())
+	{
+	  std::cout << "| " << s1.top() << " |";\
+	  s1.pop();
+	}
+      else
+	{
+	  std::cout << "     ";
+	}
+      if(((s2Size - i) >= 0) && !s2.empty())
+	{
+	  std::cout << "| " << s2.top() << " |";\
+	  s2.pop();
+	}
+
+      std::cout << '\n';
+    }
+  std::cout << '\n';
+  
 }
 
 void Hanoi::move(std::stack<int> & from, std::stack<int> & to)
