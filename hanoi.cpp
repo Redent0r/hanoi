@@ -3,7 +3,8 @@
 #include <stack>
 #include <unordered_map>
 #include <cstdlib> // exit, EXIT_FAILURE
-#include <algorithm> // max
+#include <algorithm> // std::max
+#include <iomanip> // std::setw, std::setfill
 
 class Hanoi
 {
@@ -17,47 +18,52 @@ private:
   int lrud; // least recently used disk
 
   unsigned int moveCounter; // tracks the number of moves
+  unsigned int disksWidth; // used to format output
 
-  void rHanoi(); // main / recursive function. Called by play
+  void rHanoi(); // main, recursive function. Called by play
   std::stack<int> & getFrom(); // rHanoi helper
   std::stack<int> & getTo(std::stack<int> &); //rHanoi helper
   void move(std::stack<int> &, std::stack<int> &); // called by rHanoi
   void printStacks(); // called by move to output process
 };
 
-
 int main()
 {
-  const unsigned int DISKS = 5;
+  const unsigned int DISKS = 3;
   Hanoi hanoi(DISKS);
   hanoi.play();
 }
 
-Hanoi::Hanoi(const unsigned int & n):
+Hanoi::Hanoi(const unsigned int & numberOfDisks):
   stacks{3}, // 3 stacks
-  moves{n}, // moves is size n
+  moves{numberOfDisks}, // moves is size n
   lrud{-1}, // no recently used disk
-  moveCounter{0}
+  moveCounter{0},
+  disksWidth{1}
 {
-  if(n < 1)
+  if(numberOfDisks < 1)
     {
-      std::cerr << "Please choose a positive number of disks\n";
+      std::cerr << "Please choose a number of disks greater than or equal to 1\n";
       exit(EXIT_FAILURE);
     }
 
-  for(int i = n - 1; i >= 0; i--) // the disks are zero-based
+  for(int i = numberOfDisks - 1; i >= 0; i--) // the disks are zero-based
     {
       stacks[0].push(i); // all discs start on the left stack (stacks[0])
       moves[i] = -1;
     }
-  //std::cout << "constructor finished\n";
+
+  unsigned int numDisks = numberOfDisks - 1; // because disks are zero based
+  while(true)
+    {
+      numDisks /= 10;
+      if(numDisks) ++disksWidth;
+      else break;
+    }
 }
 
 std::stack<int> & Hanoi::getFrom()
-{
-  
-  //std::cout << "getFrom()\n";
-  
+{ 
   for(int i = 0; i < 3; ++ i)
     for(int j = 0; j < 3; ++j)
       if(i != j && // do not compare with itself
@@ -68,7 +74,6 @@ std::stack<int> & Hanoi::getFrom()
 	  )) // 
 	return stacks[i];
   
-  //return stacks[0];
   // control never should get to this point
   std::cerr << "something went wrong in getFrom()\n";
   exit(EXIT_FAILURE);
@@ -77,7 +82,6 @@ std::stack<int> & Hanoi::getFrom()
 std::stack<int> & Hanoi::getTo(std::stack<int> & sFrom)
 {
   // getFrom guarantees there is a viable space to move
-  //std::cout << "about to move: " << sFrom.top() << '\n';
   for(int i = 0; i < 3; ++i)
     if(sFrom != stacks[i] && // not move to the same place and
        i != moves[sFrom.top()]&& // not move to the last position and
@@ -87,23 +91,19 @@ std::stack<int> & Hanoi::getTo(std::stack<int> & sFrom)
   // control never should get to this point
   std::cerr << "something went wrong in getTo()\n";
   exit(EXIT_FAILURE);
-  
 }
 
 void Hanoi::rHanoi()
 {
-  //std::cout << "rHanoi\n";
   if(stacks[0].empty() && // left stack empty and
      (stacks[1].empty() || // middle or
       stacks[2].empty())) // right
     return; // base case
 
-  //std::cout << "about to initialize pointers\n";
-
-
   std::stack<int> & sFrom = getFrom();
   std::stack<int> & sTo = getTo(sFrom);
   move(sFrom, sTo);
+  
   return rHanoi();
 }
 
@@ -116,19 +116,9 @@ void Hanoi::play()
 
 void Hanoi::printStacks()
 {
-  std::cout << "move counter: " << moveCounter++ << '\n';
-  /*
-  int i = 0;
-  for(const auto & stack : stacks)
-    {
-      std::cout << "stack "  << i++ << " : | ";
-      for(auto dump = stack; !dump.empty(); dump.pop())
-	std::cout << dump.top() << " | ";
-      std::cout << '\n';
-    }
-  std::cout << '\n';
-  */
-  
+  std::cout << "move counter: " << moveCounter++ << "\n\n";
+
+  // dummy stacks used for printing
   std::stack<int> s0 (stacks[0]);
   std::stack<int> s1 (stacks[1]);
   std::stack<int> s2 (stacks[2]);
@@ -141,31 +131,30 @@ void Hanoi::printStacks()
   largest = std::max(largest, s1Size);
   largest = std::max(largest, s2Size);
 
-  //std::cout << largest << '\n';
-
   for(int i = largest; i != 0; --i)
     {
       if(((s0Size - i) >= 0) &&  !s0.empty())
 	{
-	  std::cout << "| " << s0.top() << " |";\
+	  std::cout << "| " << std::setw(disksWidth)
+		    << s0.top() << " |";
 	  s0.pop();
 	}
       else
-	{
-	  std::cout << "     ";
-	}
+	std::cout << std::setfill(' ') << std::setw(disksWidth);
+      
       if(((s1Size - i) >= 0) && !s1.empty())
 	{
-	  std::cout << "| " << s1.top() << " |";\
+	  std::cout << "| " << std::setw(disksWidth)
+		    << s1.top() << " |";
 	  s1.pop();
 	}
       else
-	{
-	  std::cout << "     ";
-	}
+	std::cout << std::setfill(' ') << std::setw(disksWidth);
+	
       if(((s2Size - i) >= 0) && !s2.empty())
 	{
-	  std::cout << "| " << s2.top() << " |";\
+	  std::cout << "| " << std::setw(disksWidth)
+		    <<s2.top() << " |";
 	  s2.pop();
 	}
 
