@@ -29,7 +29,7 @@ private:
 
 int main()
 {
-  const unsigned int DISKS = 3;
+  const unsigned int DISKS = 11;
   Hanoi hanoi(DISKS);
   hanoi.play();
 }
@@ -140,7 +140,7 @@ void Hanoi::printStacks()
 	  s0.pop();
 	}
       else
-	std::cout << std::setfill(' ') << std::setw(disksWidth);
+	std::cout << std::setfill(' ') << std::setw(disksWidth + 4) << ' ';
       
       if(((s1Size - i) >= 0) && !s1.empty())
 	{
@@ -149,7 +149,7 @@ void Hanoi::printStacks()
 	  s1.pop();
 	}
       else
-	std::cout << std::setfill(' ') << std::setw(disksWidth);
+	std::cout << std::setfill(' ') << std::setw(disksWidth + 4) << ' ';
 	
       if(((s2Size - i) >= 0) && !s2.empty())
 	{
