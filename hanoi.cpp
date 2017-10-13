@@ -1,38 +1,8 @@
+#include <hanoi.h>
 #include <iostream>
-#include <vector>
-#include <stack>
-#include <unordered_map>
 #include <cstdlib> // exit, EXIT_FAILURE
 #include <algorithm> // std::max
 #include <iomanip> // std::setw, std::setfill
-
-class Hanoi
-{
-public:
-  Hanoi(const unsigned int &);
-  void play();
-  
-private:
-  std::vector <std::stack<int>> stacks; // the 3 stacks
-  std::unordered_map <int, int> moves; // maps disks to their last position before current one
-  int lrud; // least recently used disk
-
-  unsigned int moveCounter; // tracks the number of moves
-  unsigned int disksWidth; // used to format output
-
-  void rHanoi(); // main, recursive function. Called by play
-  std::stack<int> & getFrom(); // rHanoi helper
-  std::stack<int> & getTo(std::stack<int> &); //rHanoi helper
-  void move(std::stack<int> &, std::stack<int> &); // called by rHanoi
-  void printStacks(); // called by move to output process
-};
-
-int main()
-{
-  const unsigned int DISKS = 11;
-  Hanoi hanoi(DISKS);
-  hanoi.play();
-}
 
 Hanoi::Hanoi(const unsigned int & numberOfDisks):
   stacks{3}, // 3 stacks
@@ -109,6 +79,7 @@ void Hanoi::rHanoi()
 
 void Hanoi::play()
 {
+  std::cout << "\nBegin:\n";
   printStacks();
   move(stacks[0], stacks[2]); // first move
   rHanoi();
@@ -160,7 +131,10 @@ void Hanoi::printStacks()
 
       std::cout << '\n';
     }
-  std::cout << '\n';
+  std::cout << std::internal  <<std::setw(disksWidth + 2) << "s1"
+	    << std::setw(disksWidth + 4) << "s2"
+	    << std::setw(disksWidth + 4) << "s3";
+  std::cout << "\n\n";
   
 }
 
